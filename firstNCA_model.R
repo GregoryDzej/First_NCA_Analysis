@@ -2,7 +2,7 @@
 
 ######visualisation the data 
 library(ggplot2)
-data <- read.csv("sample_data.csv)
+data <- read.csv("C:\\Users\\Grzegorz_Sterkowski\\Documents\\Certra\\my_NCA_repo\\sample_data.csv")
 
 head(data)
 ###
@@ -21,17 +21,20 @@ n_distinct(data$ID)
 
 ggplot(data, aes(x=Time, y=Conc)) +
   geom_point(size=3) 
+  ggsave("images/Simple Conc vs Time plot.png", width=8, height=6, dpi=300)
  
-# plot with the lines by patient ID 
+# plot with the lines by Subject ID 
 
 ggplot(data,aes(Time,Conc) )+ geom_point()+
   geom_line(aes(group=ID))
+ggsave("images/Simple Conc vs Time plot by Subject ID.png", width=8, height=6, dpi=300)
 
 
 # create 3 plots spit by Dose 
 ggplot(data,aes(Time,Conc,colour=as.factor(Dose)))+
   geom_line(aes(group=ID))+
   facet_grid(~Dose )
+  ggsave("images/ Conc vs Time split by Dose plot.png", width=8, height=6, dpi=300)
 
 
 
@@ -41,15 +44,17 @@ plot(data[,"Time"],data[,"Conc"],type="n",xlab="Time (h)",ylab="Concentrations")
 lines(data[data$Dose==5000 ,"Time"],data[data$Dose==5000 ,"Conc"],col = "yellow")
 lines(data[data$Dose==10000 ,"Time"],data[data$Dose==10000 ,"Conc"],col= "orange")
 lines(data[data$Dose==20000 ,"Time"],data[data$Dose==20000 ,"Conc"],col= "red")
+dev.copy(png, filename = "images/line_plot_dose_color.png", width = 800, height = 600)
+dev.off()
 
 
 # histograms of quantitative variables 
-layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
-matrix(c(1,1,2,3), 2, 2, byrow = TRUE)
-hist(data$Conc)
-hist(data$Age)
-hist(data$Weight)
-layout(matrix(c(1,1,1,2,2,3,4,5,6), 3, 3, byrow = TRUE)
+layout(matrix(c(1, 1, 2, 3), 2, 2, byrow = TRUE)) # Define plotting grid layout
+hist(data$Conc, main = "Histogram of Concentration", xlab = "Concentration", col = "blue")
+hist(data$Age, main = "Histogram of Age", xlab = "Age", col = "green")
+hist(data$Weight, main = "Histogram of Weight", xlab = "Weight", col = "orange")
+dev.copy(png, filename = "images/histograms_quantitative_variables.png", width = 800, height = 600)
+dev.off()
  
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  
        
@@ -64,7 +69,8 @@ ggplot(data,aes(Time,Conc))+
              stat = "summary",
              fun.y = median, alpha =1,size=2 ) +
    scale_y_log10()+ ## log10 on y axis
-   theme_bw()        
+   theme_bw()
+  ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time.png", width=8, height=6, dpi=300)
              
        
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  by doses      
@@ -81,6 +87,7 @@ ggplot(data,aes(Time,Conc))+
             fun.y = median, alpha =1,size=2 ) +
   scale_y_log10()+ ## log10 on y axis
   theme_bw()   
+ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time by doses.png", width=8, height=6, dpi=300)
 
 library(dplyr)
 # median and  0.25 and 0.75 quantile of log(concentration) vs time grouped by dose by gender
@@ -100,62 +107,9 @@ ggplot(data,aes(Time,Conc))+
   scale_y_log10()+
   facet_grid(~Dose )+ # try (~ Race ) here 
   theme_bw()
+ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time by dose by gender.png", width=8, height=6, dpi=300)
 )
 
-
-# Filter for Male group
-sample_datamedianpercentiles5000 <- dplyr::filter(sample_datamedianpercentiles, Dose == 5000)
-sample_datamedianpercentiles5000 <- dplyr::filter(sample_datamedianpercentiles5000, Gender == "Male")
-
-# Plot the polygon for males
-x <- c(sample_datamedianpercentiles5000$Time)
-Con.Low <- c(sample_datamedianpercentiles5000$conc25)
-Con.High <- c(sample_datamedianpercentiles5000$conc75)
-
-polygon(c(x, rev(x)), c(Con.Low, rev(Con.High)), 
-        col = add.alpha(gg_color_hue(2)[1], alpha = 0.2), border = FALSE)
-lines(sample_datamedianpercentiles5000$Time, 
-      sample_datamedianpercentiles5000$medconc, 
-      col = "blue")  # BLUE for males
-
-# Filter for Female group
-sample_datamedianpercentiles5000 <- dplyr::filter(sample_datamedianpercentiles, Dose == 5000)
-sample_datamedianpercentiles5000 <- dplyr::filter(sample_datamedianpercentiles5000, Gender == "Female")
-
-# Plot the polygon for females
-x <- c(sample_datamedianpercentiles5000$Time)
-Con.Low <- c(sample_datamedianpercentiles5000$conc25)
-Con.High <- c(sample_datamedianpercentiles5000$conc75)
-
-polygon(c(x, rev(x)), c(Con.Low, rev(Con.High)), 
-        col = add.alpha(gg_color_hue(2)[2], alpha = 0.2), border = FALSE)
-lines(sample_datamedianpercentiles5000$Time, 
-      sample_datamedianpercentiles5000$medconc, 
-      col = "red")  # RED for females
-
-# Add rectangle and text
-rect(-1, 100, 26, 106, col = "gray")
-text(12.5, 102.5, "abcsd   \U00B5g/mL ")
-
-# Add legend with colors for both genders
-legend("topright", 
-       legend = c("Male", "Female"), 
-       fill = c(add.alpha("blue", alpha = 0.2), 
-                add.alpha("red", alpha = 0.2)), 
-       bty = "n", 
-       pt.cex = 2, 
-       cex = 1.2, 
-       text.col = "black", 
-       horiz = FALSE, 
-       inset = c(0.1, 0.1))
-
-sample_datamedianpercentiles<- data %>% 
-  filter(Conc> 0)%>% 
-  group_by(Dose,Gender,Time)%>% 
-  summarize(medconc =quantile(Conc,0.5,na.rm = TRUE),
-            conc25=quantile(Conc,0.25,na.rm = TRUE),
-            conc75= quantile(Conc,0.75,na.rm = TRUE)
-  )
 ######################################################
 #### noncomparmental analysis 
 
@@ -257,6 +211,8 @@ ggplot(data_wide, aes(x=factor(Dose), y=auclast, fill=Gender)) +
   geom_boxplot() +
   labs(title="AUC Last by Dose and Gender", x="Dose", y="AUC Last") +
   theme_minimal()
+ggsave("images/ BOX PLOT of median AUCLast by Gender.png", width=8, height=6, dpi=300)
+  
 
 #Violin PLOT of median Cmax by Gender MEC and MTC lines
 
@@ -277,6 +233,7 @@ ggplot(data_wide, aes(x = factor(Dose), y = cmax, fill = Gender)) +
            label = "Min Therapeutic Concentration", color = "blue", size = 4, hjust = 0) +
   annotate("text", x = 1, y = max_toxic_concentration + 0.5, 
            label = "Max Toxic Concentration", color = "red", size = 4, hjust = 0)
+ggsave("images/ Violin PLOT of median Cmax by Gender MEC and MTC lines.png", width=8, height=6, dpi=300)
 
 #scatterplot of Cmax vs Tmax by Gender 
 ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
@@ -284,6 +241,7 @@ ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
   geom_smooth(method="loess",formula = y ~ splines::bs(x, 3), se=TRUE) +# have chosen the loees fitting , and splines 
   labs(title="Cmax vs Tmax by Gender", x="Tmax", y="Cmax") +
   theme_minimal()
+ggsave("images/ scatterplot of Cmax vs Tmax by Gender .png", width=8, height=6, dpi=300)
   
   
   
