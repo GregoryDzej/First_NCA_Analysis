@@ -27,7 +27,8 @@ The primary dataset used in this analysis is a sample pharmacokinetic dataset (s
 
 Requirements
 The analysis scripts require the following R packages:
-
+| Column Name | Description |
+| :-- | :-- |
 |dplyr:| Data manipulation |
 |ggplot2:| Data visualization |
 |tidyr:| Data wrangling |
