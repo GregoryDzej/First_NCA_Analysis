@@ -205,7 +205,17 @@ summary_stats <- data_wide %>%
   )
 
 print(summary_stats)
+<<<<<<< Updated upstream
 ##
+=======
+#Dose Gender median_auclast median_cmax median_tmax q1_auclast q3_auclast tlast madian_half_life
+#<int> <chr>           <dbl>       <dbl>       <dbl>      <dbl>      <dbl> <dbl>            <dbl>
+#1  5000 Female           581.        51.6           2       476.      1060.    24             7.30
+#2  5000 Male             576.        58.5           3       415.       774.    24             7.56
+#3 10000 Female          1145.       105.            3       979.      2093.    24             8.26
+#4 10000 Male            1152.       114.            3       828.      1575.    24             6.98
+#5 20000 Female          1718.       157.            3      1477.      3166.    24             7.93
+>>>>>>> Stashed changes
 
 #BOX PLOT of median AUCLast by Gender 
 ggplot(data_wide, aes(x=factor(Dose), y=auclast, fill=Gender)) +
