@@ -205,6 +205,7 @@ summary_stats <- data_wide %>%
   )
 
 print(summary_stats)
+##
 
 #BOX PLOT of median AUCLast by Gender 
 ggplot(data_wide, aes(x=factor(Dose), y=auclast, fill=Gender)) +
