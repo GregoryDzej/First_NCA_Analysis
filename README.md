@@ -28,11 +28,11 @@ The primary dataset used in this analysis is a sample pharmacokinetic dataset (s
 Requirements
 The analysis scripts require the following R packages:
 
-dplyr: Data manipulation
-ggplot2: Data visualization
-tidyr: Data wrangling
-PKNCA: Non-compartmental analysis
-gridExtra: Advanced plots
+|dplyr:| Data manipulation |
+|ggplot2:| Data visualization |
+|tidyr:| Data wrangling |
+|PKNCA:| Non-compartmental analysis |
+|gridExtra:| Advanced plots |
 
 To install the required packages:
 
