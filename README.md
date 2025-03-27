@@ -1,4 +1,5 @@
 Pharmacokinetics Analysis Using Non-Compartmental Techniques in R
+
 This repository contains R scripts and code to perform pharmacokinetic (PK) data analysis using non-compartmental analysis (NCA) techniques and data visualization. The analysis is focused on estimating key pharmacokinetic parameters such as clearance, volume of distribution, and AUC from individual concentration-time data, along with stratified visualizations by gender and dose.
 
 Key Objectives
@@ -10,14 +11,35 @@ Summarize and visualize pharmacokinetic data to identify trends and provide insi
 
 Dataset : 
 
-The script reads a dataset from one the consulting companies in area of pharmaceutical industry of time-concentration data from a CSV file (sample_data.csv) containing the following columns:
-ID (Subject ID)
-Time (Time at which concentration was measured)
-Conc (Measured drug concentration)
-Dose (Amount of administrated dose)
-Gender (Sex of the Subject ID)
-Age    (Age of the Subject ID)
-Weight (Weight of the Subject ID)
-Race  (Race of the Subject ID)
-Dose  (Dose value per row)
-AGECAT Age category 
+The primary dataset used in this analysis is a sample pharmacokinetic dataset (sample_data.csv) and contains time-concentration profiles and subject-specific details. Below is a description of the columns:
+| Column Name | Description |
+| :-- | :-- |
+| ID | Subject ID |
+| Time | Time of concentration measurement (e.g., hours) |
+| Conc | Measured drug concentration (e.g., ng/mL) |
+| Dose | Dose amount administered to the subject (e.g., mg) |
+| Gender | Gender of the subject (e.g., Male or Female) |
+| Age | Age of the subject (e.g., years) |
+| Weight | Subject's weight (e.g., kg) |
+| Race | Race of the subject |
+| AGECAT | Age category assigned to the subject |
+
+
+Requirements
+The analysis scripts require the following R packages:
+
+dplyr: Data manipulation
+ggplot2: Data visualization
+tidyr: Data wrangling
+PKNCA: Non-compartmental analysis
+gridExtra: Advanced plots
+
+To install the required packages:
+
+install.packages(c("dplyr", "ggplot2", "tidyr", "PKNCA", "gridExtra"))
+
+This repository is maintained by Grzegorz Sterkowski . Please feel free to reach out with any questions, feedback, or issues.
+
+Contact Information:
+
+Author : grzegorzsterkowski@gmail.com 
