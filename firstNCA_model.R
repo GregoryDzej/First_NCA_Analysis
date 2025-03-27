@@ -2,7 +2,7 @@
 
 ######visualisation the data 
 library(ggplot2)
-data <- read.csv("C:\Users\Grzegorz_Sterkowski\Documents\Certra\my_repo\sample_data.csv)
+data <- read.csv("sample_data.csv)
 
 head(data)
 ###
@@ -284,3 +284,6 @@ ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
   geom_smooth(method="loess",formula = y ~ splines::bs(x, 3), se=TRUE) +# have chosen the loees fitting , and splines 
   labs(title="Cmax vs Tmax by Gender", x="Tmax", y="Cmax") +
   theme_minimal()
+  
+  
+  
