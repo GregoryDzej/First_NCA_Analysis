@@ -33,7 +33,6 @@ The analysis scripts require the following R packages:
 |ggplot2:| Data visualization |
 |tidyr:| Data wrangling |
 |PKNCA:| Non-compartmental analysis |
-|gridExtra:| Advanced plots |
 
 To install the required packages:
 
@@ -43,4 +42,4 @@ This repository is maintained by Grzegorz Sterkowski . Please feel free to reach
 
 Contact Information:
 
-Author : grzegorzsterkowski@gmail.com 
+Author: grzegorzsterkowski@gmail.com 
