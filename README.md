@@ -3,7 +3,7 @@
 ![Image (1)](https://github.com/user-attachments/assets/350278f3-0ded-4193-b21d-8d475f01e24e)
 * AI Generated photo 
 
-This repository contains R scripts and code to perform pharmacokinetic (PK) data analysis using non-compartmental analysis (NCA) techniques and data visualization. The analysis is focused on estimating key pharmacokinetic parameters such as clearance, volume of distribution, and AUC from individual concentration-time data, along with stratified visualizations by gender and dose.
+This repository contains R scripts and code to perform pharmacokinetic (PK) data analysis on a dataset with one treatment administered at three different dosage regimens using non-compartmental analysis (NCA) techniques and data visualization. The analysis focuses on estimating key pharmacokinetic parameters, including clearance, volume of distribution, and area under the curve (AUC), from individual concentration-time data. Additionally, the analysis includes stratified visualizations by gender and dose to explore trends and variability in the dataset.
 
 ## Key Objectives
 Perform exploratory data analysis (EDA) of pharmacokinetic datasets.
@@ -14,7 +14,7 @@ Summarize and visualize pharmacokinetic data to identify trends and provide insi
 
 ## Dataset : 
 
-The primary dataset used in this analysis is a sample pharmacokinetic dataset (sample_data.csv) and contains time-concentration profiles and subject-specific details. Below is a description of the columns:
+The primary dataset used in this analysis is a sample pharmacokinetic dataset (sample_data.csv) that contains time-concentration profiles and subject-specific details. Below is a description of the columns:
 | Column Name | Description |
 | :-- | :-- |
 | ID | Subject ID |
@@ -44,6 +44,6 @@ install.packages(c("dplyr", "ggplot2", "tidyr", "PKNCA", "gridExtra"))
 
 
 ## Contact Information:
-This repository is maintained by Grzegorz Sterkowski . Please feel free to reach out with any questions, feedback, or issues.
+This repository is maintained by Grzegorz Sterkowski. Please feel free to reach out with any questions, feedback, or issues.
 
 ### Author: grzegorzsterkowski@gmail.com 
