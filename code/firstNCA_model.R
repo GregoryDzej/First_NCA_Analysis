@@ -29,24 +29,26 @@ summary(data)
 #number of subject in the study
 n_distinct(data$ID)
 
+dir.create("images")
+
 ######visualisation of the data 
 
 ggplot(data, aes(x=Time, y=Conc)) +
   geom_point(size=3) 
-  ggsave("images/Simple Conc vs Time plot.png", width=8, height=6, dpi=300)
+  ggsave("images/1_Simple_Conc_vs_Time_plot.png", width= 8, height= 6, dpi= 300)
  
 # plot with the lines by Subject ID 
 
 ggplot(data,aes(Time,Conc) )+ geom_point()+
   geom_line(aes(group=ID))
-ggsave("images/Simple Conc vs Time plot by Subject ID.png", width=8, height=6, dpi=300)
+ggsave("images/2_Simple_Conc_vs_Time_plot_by_Subject_ID.png", width = 8, height = 6, dpi = 300)
 
 
 # create 3 plots spit by Dose 
 ggplot(data,aes(Time,Conc,colour=as.factor(Dose)))+
   geom_line(aes(group=ID))+
   facet_grid(~Dose )
-  ggsave("images/ Conc vs Time split by Dose plot.png", width=8, height=6, dpi=300)
+  ggsave("images/3_Conc_vs_Time_split_by_Dose_plot.png", width= 8, height= 6, dpi= 300)
 
 # plot of the patients concentriation colorised by Dose 
 par(mfrow=c(1,1))
@@ -54,7 +56,7 @@ plot(data[,"Time"],data[,"Conc"],type="n",xlab="Time (h)",ylab="Concentrations")
 lines(data[data$Dose==5000 ,"Time"],data[data$Dose==5000 ,"Conc"],col = "yellow")
 lines(data[data$Dose==10000 ,"Time"],data[data$Dose==10000 ,"Conc"],col= "orange")
 lines(data[data$Dose==20000 ,"Time"],data[data$Dose==20000 ,"Conc"],col= "red")
-dev.copy(png, filename = "images/line_plot_dose_color.png", width = 800, height = 600)
+dev.copy(png, filename = "images/4_Line_plot_dose_color.png", width = 800, height = 600)
 dev.off()
 
 # histograms of quantitative variables 
@@ -62,11 +64,10 @@ layout(matrix(c(1, 1, 2, 3), 2, 2, byrow = TRUE)) # Define plotting grid layout
 hist(data$Conc, main = "Histogram of Concentration", xlab = "Concentration", col = "blue")
 hist(data$Age, main = "Histogram of Age", xlab = "Age", col = "green")
 hist(data$Weight, main = "Histogram of Weight", xlab = "Weight", col = "orange")
-dev.copy(png, filename = "images/histograms_quantitative_variables.png", width = 800, height = 600)
+dev.copy(png, filename = "images/5_Histograms_quantitative_variables.png", width = 800, height = 600)
 dev.off()
  
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  
-       
 ggplot(data,aes(Time,Conc))+
    geom_line(aes(group=ID),color="black",alpha=0.2)+
    geom_ribbon(mapping = aes(x = Time, y = Conc,),
@@ -79,7 +80,7 @@ ggplot(data,aes(Time,Conc))+
              fun.y = median, alpha =1,size=2 ) +
    scale_y_log10()+ ## log10 on y axis
    theme_bw()
-  ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time.png", width=8, height=6, dpi=300)
+  ggsave("images/6_Median_0.25_and_0.75_quantile_of_log(concentration)_vs_time.png", width=8, height=6, dpi=300)
              
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  by doses      
        
@@ -95,9 +96,9 @@ ggplot(data,aes(Time,Conc))+
             fun.y = median, alpha =1,size=2 ) +
   scale_y_log10()+ ## log10 on y axis
   theme_bw()   
-ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time by doses.png", width=8, height=6, dpi=300)
+ggsave("images/7_median_and_0.25_and_0.75_quantile_of_log(concentration)_vs_time_by_doses.png", width=8, height=6, dpi=300)
 
-# median and  0.25 and 0.75 quantile of log(concentration) vs time grouped by dose by gender
+# median and  0.25-and_0.75_quantile_of_log(concentration)_vs_time_grouped_by_dose_by_gender
 ##################
 ggplot(data,aes(Time,Conc))+
   geom_line(aes(group=ID),color="black",alpha=0.2)+
@@ -114,7 +115,7 @@ ggplot(data,aes(Time,Conc))+
   scale_y_log10()+
   facet_grid(~Dose )+ # try (~ Race ) here 
   theme_bw()
-ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time by dose by gender.png", width=8, height=6, dpi=300)
+ggsave("images/8_median_and_0.25_and_0.75_quantile_of_log_concentration_vs_time_by_dose_by_gender.png", width=8, height=6, dpi=300)
 )
 
 ######################################################
@@ -209,12 +210,9 @@ summary_stats <- data_wide %>%
     n = n_distinct(Subject)                                   # Number of Distinct Subjects
   )
 
+
 print(summary_stats)
 
-
-
-# A tibble: 6 × 12
-# Groups:   Dose [3]
 #Dose Gender median_auclast median_cmax median_tmax q1_auclast q3_auclast median_tlast
 #<int> <chr>           <dbl>       <dbl>       <dbl>      <dbl>      <dbl>        <dbl>
 #1  5000 Female           581.        51.6           2       476.      1060.           24
@@ -230,11 +228,9 @@ ggplot(data_wide, aes(x=factor(Dose), y=auclast, fill=Gender)) +
   geom_boxplot() +
   labs(title="AUC Last by Dose and Gender", x="Dose", y="AUC Last") +
   theme_minimal()
-ggsave("images/ BOX PLOT of median AUCLast by Gender.png", width=8, height=6, dpi=300)
+ggsave("images/9_BOX_PLOT_of_median_AUCLast_by_Gender.png", width=8, height=6, dpi=300)
   
-
 #Violin PLOT of median Cmax by Gender MEC and MTC lines
-
 min_therapeutic_concentration <- 40  # theoretical value for MEC
 max_toxic_concentration <- 250  # theoretical value for  MTC
 
@@ -252,7 +248,7 @@ ggplot(data_wide, aes(x = factor(Dose), y = cmax, fill = Gender)) +
            label = "Min Therapeutic Concentration", color = "blue", size = 4, hjust = 0) +
   annotate("text", x = 1, y = max_toxic_concentration + 0.5, 
            label = "Max Toxic Concentration", color = "red", size = 4, hjust = 0)
-ggsave("images/ Violin PLOT of median Cmax by Gender MEC and MTC lines.png", width=8, height=6, dpi=300)
+ggsave("images/10_Violin_PLOT_of_median_Cmax_by_Gender_MEC_and_MTC_lines.png", width=8, height=6, dpi=300)
 
 #scatterplot of Cmax vs Tmax by Gender 
 ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
@@ -260,7 +256,7 @@ ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
   geom_smooth(method="loess",formula = y ~ splines::bs(x, 3), se=TRUE) +# have chosen the loees fitting , and splines 
   labs(title="Cmax vs Tmax by Gender", x="Tmax", y="Cmax") +
   theme_minimal()
-ggsave("images/ scatterplot of Cmax vs Tmax by Gender .png", width=8, height=6, dpi=300)
+ggsave("images/11_scatterplot_of_Cmax_vs_Tmax_by_Gender.png", width=8, height=6, dpi=300)
   
   
   
