@@ -1,8 +1,16 @@
+## load required R packages 
 
-
-######visualisation the data 
 library(ggplot2)
-data <- read.csv("sample_data.csv")
+library(dplyr)
+#install.packages("PKNCA")
+library(PKNCA)
+#install.packages('pander')
+library(pander)
+library(tidyr)
+
+#load the sample_data dataset
+
+data <- read.csv("C:\\Users\\Grzegorz_Sterkowski\\Documents\\Pharma\\my_NCA_repo\\dataset\\sample_data.csv")
 
 head(data)
 ###
@@ -15,9 +23,13 @@ head(data)
 ##6    1  3.00    0  31.299610  56     94   Male  Hispanic 5000      0
 ##7    1  4.00    0  24.979117  56     94   Male  Hispanic 5000      0
 
-
+#summarising the data 
 summary(data)
+
+#number of subject in the study
 n_distinct(data$ID)
+
+######visualisation of the data 
 
 ggplot(data, aes(x=Time, y=Conc)) +
   geom_point(size=3) 
@@ -36,8 +48,6 @@ ggplot(data,aes(Time,Conc,colour=as.factor(Dose)))+
   facet_grid(~Dose )
   ggsave("images/ Conc vs Time split by Dose plot.png", width=8, height=6, dpi=300)
 
-
-
 # plot of the patients concentriation colorised by Dose 
 par(mfrow=c(1,1))
 plot(data[,"Time"],data[,"Conc"],type="n",xlab="Time (h)",ylab="Concentrations")
@@ -46,7 +56,6 @@ lines(data[data$Dose==10000 ,"Time"],data[data$Dose==10000 ,"Conc"],col= "orange
 lines(data[data$Dose==20000 ,"Time"],data[data$Dose==20000 ,"Conc"],col= "red")
 dev.copy(png, filename = "images/line_plot_dose_color.png", width = 800, height = 600)
 dev.off()
-
 
 # histograms of quantitative variables 
 layout(matrix(c(1, 1, 2, 3), 2, 2, byrow = TRUE)) # Define plotting grid layout
@@ -72,7 +81,6 @@ ggplot(data,aes(Time,Conc))+
    theme_bw()
   ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time.png", width=8, height=6, dpi=300)
              
-       
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  by doses      
        
 ggplot(data,aes(Time,Conc))+
@@ -89,7 +97,6 @@ ggplot(data,aes(Time,Conc))+
   theme_bw()   
 ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time by doses.png", width=8, height=6, dpi=300)
 
-library(dplyr)
 # median and  0.25 and 0.75 quantile of log(concentration) vs time grouped by dose by gender
 ##################
 ggplot(data,aes(Time,Conc))+
@@ -114,55 +121,53 @@ ggsave("images/ median and  0.25 and 0.75 quantile of log(concentration) vs time
 #### noncomparmental analysis 
 
 
-install.packages("PKNCA")
-library(PKNCA)
-install.packages('pander')
-library(pander)
-## obtain dose data 
-
+## obtaining dose data from original dataset
 dose_data <- data.frame(
   Subject = unique(data$ID),
   Time = 0,
   Dose = 5000 # The dose values (from your dataset)
 )
 
-# Combine concentration-time data with dosing info
+#creating Dose object
+dose_obj <- PKNCAdose(
+  dose_data,                         # Raw dosing dataset
+  Dose ~ Time | Subject                   # Formula: Dose depends on Time, grouped by ID
+)
+
+# obtaining concentration-time data from original dataset
 conc_data <- data.frame(
   Subject = data$ID,
   Time = data$Time,
   Concentration = data$Conc
 ) 
 
+#creating Concentration object
 conc_obj <- PKNCAconc(
   conc_data[!is.na(conc_data$Concentration), ],  # Filter rows where concentration values are not NA
   Concentration ~ Time | Subject                 # Formula: Concentration as a function of Time, grouped by Subject
 )
 
-dose_obj <- PKNCAdose(
-  dose_data,                         # Raw dosing dataset
-  Dose ~ Time | Subject                   # Formula: Dose depends on Time, grouped by ID
-)
-
-
+#creation of the PK object
 PK_object <- PKNCAdata(
   data.conc = conc_obj,  # Concentration-time object
   data.dose = dose_obj          # Dosing object
 )
 
+#obtaining overal results for PK_object as AUC last, Cmax, tmax, halflife
 results<-pk.nca(PK_object)
 pander::pander(summary(results))
 
-# Convert results into a standard data frame
+# Obtaining subject-level NCA results
 param_table <- as.data.frame(results)
-pander::pander(param_table)
+
 head(param_table)
 
-#grouping the data to be joined
+#aggregating the data from original dataset to add 'Gender' and 'Dose' level to the subject-level NCA results 
 data_grouped <- data %>%
   group_by(ID) %>%
   summarize(Dose = first(Dose), Gender = first(Gender))
 
-# left join param table with data 
+# left join aggregated data to param table by = c('Subject' = 'ID'))
 param_table <- param_table %>% 
   left_join(data_grouped %>% select(ID, Dose, Gender), by = c('Subject' = 'ID'))
 
@@ -170,13 +175,13 @@ pander::pander(param_table)
 
 head(param_table)
 
-library(tidyr)
-#pivot some columns 
+
+#pivot PPTESTCD and PPORRES columns 
 
 data_wide <- param_table %>%
   pivot_wider(names_from = PPTESTCD, values_from = PPORRES)
 
-#adding the clerance and volume of distribution to our data
+#adding the Clerance and Volume parameters to NCA subject level parameter table
 
 data_wide <- data_wide %>%
   mutate(
@@ -188,34 +193,37 @@ data_wide <- data_wide %>%
 head(data_wide)
 
 
-#summary statistics for AUCLAST, CMAX, TMAX
+# Summary statistics for AUCLAST, CMAX, TMAX, and other NCA parameters
 summary_stats <- data_wide %>%
   group_by(Dose, Gender) %>%
   summarize(
-    median_auclast = median(auclast, na.rm = TRUE),
-    median_cmax = median(cmax, na.rm = TRUE),
-    median_tmax = median(tmax, na.rm = TRUE),
-    q1_auclast = quantile(auclast,probs = 0.25, na.rm = TRUE),
-    q3_auclast = quantile(auclast,probs = 0.75, na.rm = TRUE),
-    tlast = max(tlast, na.rm = TRUE),
-    madian_half_life = median(half.life , na.rm = TRUE),
-    median_CL = median(CL, na.rm = TRUE),
-    median_Vd = median(Vd, na.rm = TRUE),
-    n = n_distinct(Subject)
+    median_auclast = median(auclast, na.rm = TRUE),           # Median AUCLAST
+    median_cmax = median(cmax, na.rm = TRUE),                 # Median CMAX
+    median_tmax = median(tmax, na.rm = TRUE),                 # Median TMAX
+    q1_auclast = quantile(auclast, probs = 0.25, na.rm = TRUE), # 25th Percentile AUCLAST
+    q3_auclast = quantile(auclast, probs = 0.75, na.rm = TRUE), # 75th Percentile AUCLAST
+    median_tlast = median(tlast, na.rm = TRUE),                 # Median TLAST
+    median_half_life = median(half.life, na.rm = TRUE),         # Median Half-Life
+    median_CL = median(CL, na.rm = TRUE),                     # Median Clearance
+    median_Vd = median(Vd, na.rm = TRUE),                     # Median Volume of Distribution
+    n = n_distinct(Subject)                                   # Number of Distinct Subjects
   )
 
 print(summary_stats)
-<<<<<<< Updated upstream
-##
-=======
-#Dose Gender median_auclast median_cmax median_tmax q1_auclast q3_auclast tlast madian_half_life
-#<int> <chr>           <dbl>       <dbl>       <dbl>      <dbl>      <dbl> <dbl>            <dbl>
-#1  5000 Female           581.        51.6           2       476.      1060.    24             7.30
-#2  5000 Male             576.        58.5           3       415.       774.    24             7.56
-#3 10000 Female          1145.       105.            3       979.      2093.    24             8.26
-#4 10000 Male            1152.       114.            3       828.      1575.    24             6.98
-#5 20000 Female          1718.       157.            3      1477.      3166.    24             7.93
->>>>>>> Stashed changes
+
+
+
+# A tibble: 6 × 12
+# Groups:   Dose [3]
+#Dose Gender median_auclast median_cmax median_tmax q1_auclast q3_auclast median_tlast
+#<int> <chr>           <dbl>       <dbl>       <dbl>      <dbl>      <dbl>        <dbl>
+#1  5000 Female           581.        51.6           2       476.      1060.           24
+#2  5000 Male             576.        58.5           3       415.       774.           24
+#3 10000 Female          1145.       105.            3       979.      2093.           24
+#4 10000 Male            1152.       114.            3       828.      1575.           24
+#5 20000 Female          1718.       157.            3      1477.      3166.           24
+#6 20000 Male            1693.       173.            3      1236.      2355.           24
+
 
 #BOX PLOT of median AUCLast by Gender 
 ggplot(data_wide, aes(x=factor(Dose), y=auclast, fill=Gender)) +
