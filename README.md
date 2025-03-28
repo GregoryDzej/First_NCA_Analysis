@@ -1,7 +1,7 @@
 # Pharmacokinetics Analysis Using Non-Compartmental Techniques in R
 
 ![Image (1)](https://github.com/user-attachments/assets/350278f3-0ded-4193-b21d-8d475f01e24e)
-* AI Generated photo 
+*<small>AI Generated photo</small> 
 
 This repository contains R scripts and code to perform pharmacokinetic (PK) data analysis on a dataset with one treatment administered at three different dosage regimens using non-compartmental analysis (NCA) techniques and data visualization. The analysis focuses on estimating key pharmacokinetic parameters, including clearance, volume of distribution, and area under the curve (AUC), from individual concentration-time data. Additionally, the analysis includes stratified visualizations by gender and dose to explore trends and variability in the dataset.
 
