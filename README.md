@@ -14,7 +14,10 @@ Summarize and visualize pharmacokinetic data to identify trends and provide insi
 
 ## Dataset : 
 
-The primary dataset used in this analysis is a sample pharmacokinetic dataset (sample_data.csv) that contains time-concentration profiles and subject-specific details. Below is a description of the columns:
+The primary dataset used in this analysis is a sample pharmacokinetic dataset (sample_data.csv) equivalent to 
+```sd_oral_richpk:``` Oral 5000mg (N=50) from PKPDdatasets. 
+This dataset contains time-concentration profiles and subject-specific metadata that are critical for the pharmacokinetic analysis performed in this repository.
+
 | Column Name | Description |
 | :-- | :-- |
 | ID | Subject ID |
