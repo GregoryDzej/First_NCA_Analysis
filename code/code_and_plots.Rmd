@@ -1,4 +1,11 @@
-output: rmarkdown::github_document
+---
+output:
+  pdf_document: default
+  html_document: default
+
+install.packages("tinytex")
+tinytex::install_tinytex()
+tinytex::reinstall_tinytex()
 
 ```{r, echo=TRUE, fig.width=8, fig.height=6}
 
@@ -11,6 +18,8 @@ library(PKNCA)
 #install.packages('pander')
 library(pander)
 library(tidyr)
+
+
 
 #load the sample_data dataset
 
