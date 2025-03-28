@@ -1,3 +1,7 @@
+output: rmarkdown::github_document
+
+```{r, echo=TRUE, fig.width=8, fig.height=6}
+
 ## load required R packages 
 
 library(ggplot2)
@@ -33,47 +37,46 @@ n_distinct(data$ID)
 ######visualisation of the data
 
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
 ggplot(data, aes(x=Time, y=Conc)) +
   geom_point(size=3)
-```
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
 # plot of data with log transformation
 ggplot(data %>% filter(!is.na(Conc), Conc > 0), aes(x=Time, y=Conc)) +
   geom_point(size=3)+
   scale_y_log10() 
-```
+
 ```{r, echo=TRUE, fig.width=8, fig.height=6}
 # plot with the lines by Subject ID 
 ggplot(data %>% filter(!is.na(Conc), Conc > 0),aes(Time,Conc) )+ geom_point()+
   geom_line(aes(group=ID))+
   scale_y_log10() 
-```
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
+
 # create 3 plots split by Dose 
 ggplot(data %>% filter(!is.na(Conc), Conc > 0),aes(Time,Conc,colour=as.factor(Dose)))+
   geom_line(aes(group=ID))+
   facet_grid(~Dose )+ 
   scale_y_log10()
-```
+
   
-```{r, echo=TRUE, fig.width=8, fig.height=6} 
+
 # create split by Dose 
 ggplot(data %>% filter(!is.na(Conc), Conc > 0),aes(Time,Conc,colour=as.factor(Dose)))+
   geom_line(aes(group=ID))+
   scale_y_log10()
-```
+
   
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
 # histograms of quantitative variables 
 layout(matrix(c(1, 1, 2, 3), 2, 2, byrow = TRUE)) # Define plotting grid layout
 hist(data$Conc, main = "Histogram of Concentration", xlab = "Concentration", col = "blue")
 hist(data$Age, main = "Histogram of Age", xlab = "Age", col = "green")
 hist(data$Weight, main = "Histogram of Weight", xlab = "Weight", col = "orange")
-```
 
-```{r, echo=TRUE, fig.width=8, fig.height=6} 
+
+
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  
 ggplot(data,aes(Time,Conc))+
    geom_line(aes(group=ID),color="black",alpha=0.2)+
@@ -87,9 +90,9 @@ ggplot(data,aes(Time,Conc))+
              fun.y = median, alpha =1,size=2 ) +
    scale_y_log10()+ ## log10 on y axis
    theme_bw()
-```
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
+
 # median and  0.25 and 0.75 quantile of log(concentration) vs time  by doses      
 ggplot(data,aes(Time,Conc))+
   geom_line(aes(group=ID),color="black",alpha=0.2)+
@@ -103,9 +106,9 @@ ggplot(data,aes(Time,Conc))+
             fun.y = median, alpha =1,size=2 ) +
   scale_y_log10()+ ## log10 on y axis
   theme_bw()   
-```
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
+
 
 # median and  0.25-and_0.75_quantile_of_log(concentration)_vs_time_grouped_by_dose_by_gender
 ##################
@@ -124,7 +127,7 @@ ggplot(data,aes(Time,Conc))+
   scale_y_log10()+
   facet_grid(~Dose )+ # try (~ Race ) here 
   theme_bw()
-```
+
 
 
 ######################################################
@@ -181,8 +184,6 @@ data_grouped <- data %>%
 param_table <- param_table %>% 
   left_join(data_grouped %>% select(ID, Dose, Gender), by = c('Subject' = 'ID'))
 
-pander::pander(param_table)
-
 head(param_table)
 
 
@@ -231,15 +232,15 @@ print(summary_stats)
 #5 20000 Female          1718.       157.            3      1477.      3166.           24
 #6 20000 Male            1693.       173.            3      1236.      2355.           24
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
 #BOX PLOT of median AUCLast by Gender 
 ggplot(data_wide, aes(x=factor(Dose), y=auclast, fill=Gender)) +
   geom_boxplot() +
   labs(title="AUC Last by Dose and Gender", x="Dose", y="AUC Last") +
   theme_minimal()
-```
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
+
 #Violin PLOT of median Cmax by Gender MEC and MTC lines
 min_therapeutic_concentration <- 40  # theoretical value for MEC
 max_toxic_concentration <- 250  # theoretical value for  MTC
@@ -258,16 +259,14 @@ ggplot(data_wide, aes(x = factor(Dose), y = cmax, fill = Gender)) +
            label = "Min Therapeutic Concentration", color = "blue", size = 4, hjust = 0) +
   annotate("text", x = 1, y = max_toxic_concentration + 0.5, 
            label = "Max Toxic Concentration", color = "red", size = 4, hjust = 0)
-```
 
-```{r, echo=TRUE, fig.width=8, fig.height=6}
+
 #scatterplot of Cmax vs Tmax by Gender 
 ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
   geom_point() +
   geom_smooth(method="loess",formula = y ~ splines::bs(x, 3), se=TRUE) +# have chosen the loees fitting , and splines 
   labs(title="Cmax vs Tmax by Gender", x="Tmax", y="Cmax") +
   theme_minimal()
-```
   
   
   
