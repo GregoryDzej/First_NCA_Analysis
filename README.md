@@ -42,6 +42,8 @@ The analysis scripts require the following R packages:
 ```{r}
 install.packages(c("dplyr", "ggplot2", "tidyr", "PKNCA", "gridExtra"))
 ```
+Full analysis: https://github.com/GregoryDzej/First_NCA_Analysis/blob/main/code/code_and_plots.pdf
+
 
 ## Contact Information:
 This repository is maintained by Grzegorz Sterkowski. Please feel free to reach out with any questions, feedback, or issues.
