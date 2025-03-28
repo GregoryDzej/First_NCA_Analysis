@@ -1,4 +1,4 @@
-# Pharmacokinetics Analysis Using Non-Compartmental Techniques in R
+# Pharmacokinetics Analysis Using Non-Compartmental Techniques with PKNCA package in R
 
 ![Image (1)](https://github.com/user-attachments/assets/350278f3-0ded-4193-b21d-8d475f01e24e)
 *<small>AI Generated photo</small> 
