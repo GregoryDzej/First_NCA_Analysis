@@ -2,7 +2,7 @@
 
 ######visualisation the data 
 library(ggplot2)
-data <- read.csv("C:\\Users\\Grzegorz_Sterkowski\\Documents\\Certra\\my_NCA_repo\\sample_data.csv")
+data <- read.csv("sample_data.csv")
 
 head(data)
 ###
