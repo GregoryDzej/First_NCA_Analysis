@@ -36,6 +36,37 @@ ggplot(data, aes(x=Time, y=Conc)) +
   geom_point(size=3)
 ggsave("images/0_Simple_Conc_vs_Time_without_logtransformation_plot.png", width= 8, height= 6, dpi= 300)
 
+
+ggplot(data,aes(Time,Conc))+
+  geom_line(aes(group=ID),color="black",alpha=0.2)+
+  theme_bw()
+
+# Linear Concentration profile
+ggplot(data, aes(Time, Conc)) +
+  # Individual data lines with legend entry
+  geom_line(aes(group = ID, color = "Observations"), alpha = 0.2) +
+  
+  # Ribbon for the interquartile range
+  geom_ribbon(mapping = aes(x = Time, ymin = stat(ymin), ymax = stat(ymax)),
+              stat = "summary",
+              fun.ymin = function(y) { quantile(y, 0.25, na.rm = TRUE) },
+              fun.ymax = function(y) { quantile(y, 0.75, na.rm = TRUE) },
+              fun.y = median, alpha = 0.3, fill = "darkgrey") +
+  
+  # Plot median line from data (with legend entry)
+  geom_line(mapping = aes(y = Conc, color = "Median"), 
+            stat = "summary", fun.y = median, alpha = 1, size = 2) +
+  
+  # Customize legend and theme
+  scale_color_manual(name = "Legend", 
+                     values = c("Observations" = "grey", "Median" = "black")) +
+  labs(y = "Concentration", x = "Time")  # Add axis labels as needed
+ 
+
+# Display the plot
+
+
+
 # plot of data with log transformation
 ggplot(data %>% filter(!is.na(Conc), Conc > 0), aes(x=Time, y=Conc)) +
   geom_point(size=3)+
@@ -201,6 +232,7 @@ data_wide <- data_wide %>%
 
 # View the reshaped dataset
 head(data_wide)
+print(data_wide, n = 30)
 
 
 # Summary statistics for AUCLAST, CMAX, TMAX, and other NCA parameters by Dose and Gender
@@ -406,5 +438,42 @@ ggplot(summary_stats_Age, aes(x = factor(Dose), y = median_cmax, fill = Age_Rang
   )
 ggsave("images/13_Median_Cmax_Dose_Age_.png", width=8, height=6, dpi=300)
 
+# calculation of MRT (Mean Residence Time) 
+# for oral absorption we determine that the MRT = (AUMC/ AUC) 
+#  
 
+# 1 calculate AUMC0 - last 
+data <- data %>%
+  mutate (Cprime = data$Time * data$Conc,
+          delta_time = lead(Time) - Time,                                 # Calculate ΔTime (difference in Time)
+          AUMC_t1_t2 = 0.5 * delta_time * (Cprime + lead(Cprime))         # Apply AUMC formula
+  ) 
+head(data)
 
+head(data_wide)
+
+str(data_wide$Subject)
+str(data$ID)
+
+# Summarize the data by ID
+summarized_data <- data %>% 
+  group_by(ID) %>% 
+  summarize(total_AUMC_t1_t2 = sum(AUMC_t1_t2, na.rm = TRUE), .groups = 'drop')
+
+# Perform the right_join
+data_wide <- data_wide %>% 
+  right_join(summarized_data, by = c('Subject' = 'ID'), relationship = "many-to-many")
+
+# calculate AUMC(t- inf.)
+
+data_wide <- data_wide %>%
+  mutate(AUMC_t_inf. = (tlast * clast.obs / lambda.z) + (clast.obs / (lambda.z^2)))
+
+#Sum(AUMCAUMC_t1_t2) + AUMC_t_inf.
+
+data_wide <- data_wide %>% 
+  mutate(AUMC_all = AUMC_t_inf. + total_AUMC_t1_t2)
+
+# MRT 
+data_wide <-data_wide %>%  
+  mutate( MRT = AUMC_all/ aucinf.obs )
