@@ -2,6 +2,11 @@
 output:
   pdf_document: default
   html_document: default
+---
+---
+output:
+  pdf_document: default
+  html_document: default
 
 install.packages("tinytex")
 tinytex::install_tinytex()
@@ -277,5 +282,143 @@ ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
   labs(title="Cmax vs Tmax by Gender", x="Tmax", y="Cmax") +
   theme_minimal()
   
+############# NCA analysis considering also Age 
+  
+# dose data with Age 
+dose_data_Age <- data %>%
+  filter(Time == 0) %>%  # Only keep rows where Time == 0 (corresponding to dosing)
+  group_by(ID) %>%       # Group by each subject ID
+  summarize(
+    Subject = first(ID), # Unique subject identifier
+    Time = first(Time),  # Dosing time (usually 0)
+    Dose = first(Dose),
+    Gender = first(Gender),
+    Age = first(Age)
+  )
+    
+print(dose_data_Age)
+
+
+#creating Dose object
+dose_data_Age_obj <- PKNCAdose(
+  dose_data_Age,                         
+  Dose ~ Time | Age + Subject                
+)
+
+# Concentaration data with Age 
+
+Conc_data_Age <- data %>%
+  select(ID, Time, Conc, Age, Gender) %>%
+  rename(
+    Subject = ID,
+    Concentration = Conc
+  )
+head(Conc_data_Age)
+
+#creating Concentration object
+Conc_data_Age_obj <- PKNCAconc(
+  Conc_data_Age[!is.na(Conc_data_Age$Concentration), ],  # Filter rows where concentration values are not NA
+  Concentration ~ Time | Age  + Subject                # Formula: Concentration as a function of Time, grouped by Subject
+)
+
+#creation of the PK object
+PK_object_Age <- PKNCAdata(
+  data.conc = Conc_data_Age_obj,  # Concentration-time object
+  data.dose = dose_data_Age_obj          # Dosing object
+)
+
+#obtaining overal results for PK_object as AUC last, Cmax, tmax, halflife
+results_Age<-pk.nca(PK_object_Age)
+pander::pander(summary(results_Age))
+
+# Obtaining subject-level NCA results
+param_table_Age <- as.data.frame(results_Age)
+
+head(param_table_Age)
+
+#it seems that adding Age to the Dose and ConcentraTION AS GROUPING factor did not affect calculation of AUC and other NCa param
+
+# left join aggregated data to param table by = c('Subject' = 'ID')) to add Dose
+param_table_Age <- param_table_Age %>% 
+  left_join(data_grouped %>% select(ID, Dose), by = c('Subject' = 'ID'))
+
+#pivot PPTESTCD and PPORRES columns 
+
+data_wide_Age <- param_table_Age %>%
+  pivot_wider(names_from = PPTESTCD, values_from = PPORRES)
+
+#adding the Clerance and Volume parameters to NCA subject level parameter table
+
+data_wide_Age <- data_wide_Age %>%
+  mutate(
+    CL = Dose / aucinf.obs,            # Clearance
+    Vd = CL / lambda.z                 # Volume of distribution
+  )
+
+
+# Add Age Range to Dataset
+data_wide_Age <- data_wide_Age %>%
+  mutate(
+    Age_Range = cut(
+      Age,
+      breaks = c(0, 40, 50, 60, Inf),  # Define intervals (e.g., 0-40, 40-50, etc.)
+      labels = c("<40", "40-50", "51-60", ">60"),  # Labels for ranges
+      right = FALSE  # Include left endpoint, exclude right endpoint
+    )
+  )
+# create summary table that has the same column as previous table but with Age grouping
+summary_stats_Age <- data_wide_Age %>%
+  group_by(Dose, Age_Range) %>%
+  summarize(
+    median_auclast = median(auclast, na.rm = TRUE),           # Median AUCLAST
+    q1_auclast = quantile(auclast, probs = 0.25, na.rm = TRUE), # 25th Percentile AUCLAST
+    q3_auclast = quantile(auclast, probs = 0.75, na.rm = TRUE), # 75th Percentile AUCLAST
+    median_cmax = median(cmax, na.rm = TRUE),                 # Median CMAX
+    median_tmax = median(tmax, na.rm = TRUE),                 # Median TMAX
+    median_tlast = median(tlast, na.rm = TRUE),                 # Median TLAST
+    median_half_life = median(half.life, na.rm = TRUE),         # Median Half-Life
+    median_CL = median(CL, na.rm = TRUE),                     # Median Clearance
+    median_Vd = median(Vd, na.rm = TRUE),                     # Median Volume of Distribution
+    n = n_distinct(Subject)                                   # Number of Distinct Subjects
+  )
+
+print(summary_stats_Age)
+# the computation of 
+
+#Median AUCLAST by Dose and Age Range with SE(0.25,0,75)
+ggplot(summary_stats_Age, aes(x = factor(Dose), y = median_auclast, fill = Age_Range)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin = q1_auclast, ymax = q3_auclast), 
+                position = position_dodge(0.9), width = 0.25) + # Error bars
+  labs(
+    title = "Median AUCLAST by Dose and Age Range with SE(0.25,0,75)",
+    x = "Dose (mg)",
+    y = "Median AUCLAST",
+    fill = "Age Range"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for better readability
+    legend.position = "top"                           # Move legend to the top for better layout
+  )
+
+#Median Cmax by Dose and Age Range with SE(0.25,0,75)
+ggplot(summary_stats_Age, aes(x = factor(Dose), y = median_cmax, fill = Age_Range)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(
+    title = "Median Cmax by Dose and Age Range with SE(0.25,0,75)",
+    x = "Dose (mg)",
+    y = "Median Cmax",
+    fill = "Age Range"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for better readability
+    legend.position = "top"                           # Move legend to the top for better layout
+  )
+
+
+
+
   
   

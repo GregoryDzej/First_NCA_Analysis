@@ -268,7 +268,7 @@ ggplot(data_wide, aes(x=tmax, y=cmax, color=Gender)) +
   theme_minimal()
 ggsave("images/11_scatterplot_of_Cmax_vs_Tmax_by_Gender.png", width=8, height=6, dpi=300)
   
-############# NCA analysis considering also Age and Gender
+############# NCA analysis considering also Age 
   
 # dose data with Age 
 dose_data_Age <- data %>%
@@ -282,12 +282,12 @@ dose_data_Age <- data %>%
     Age = first(Age)
   )
     
-print(dose_data_Age_Gender)
+print(dose_data_Age)
 
 
 #creating Dose object
 dose_data_Age_obj <- PKNCAdose(
-  dose_data_Age_Gender,                         
+  dose_data_Age,                         
   Dose ~ Time | Age + Subject                
 )
 
@@ -303,7 +303,7 @@ head(Conc_data_Age)
 
 #creating Concentration object
 Conc_data_Age_obj <- PKNCAconc(
-  Conc_data_Age[!is.na(Conc_data_Age_Gender$Concentration), ],  # Filter rows where concentration values are not NA
+  Conc_data_Age[!is.na(Conc_data_Age$Concentration), ],  # Filter rows where concentration values are not NA
   Concentration ~ Time | Age  + Subject                # Formula: Concentration as a function of Time, grouped by Subject
 )
 
