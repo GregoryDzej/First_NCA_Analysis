@@ -51,4 +51,6 @@ Full analysis in PDF: https://github.com/GregoryDzej/First_NCA_Analysis/blob/mai
 ## Contact Information:
 This repository is maintained by Grzegorz Sterkowski. Please feel free to reach out with any questions, feedback, or issues.
 
+Thank you!
+
 ### Author: grzegorzsterkowski@gmail.com 
