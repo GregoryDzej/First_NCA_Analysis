@@ -527,12 +527,6 @@ print(nonmem_data)
 
 str(nonmem_data)
 
-subset_data <- nonmem_data[nonmem_data$EVID == 0, ]
-
-# Check for missing values in critical columns
-sum(is.na(subset_data$DV))  # Observed concentrations
-sum(is.na(subset_data$TIME))
-sum(is.na(subset_data$AMT))
 
 
 #load PK model 
@@ -589,4 +583,101 @@ ggplot(data = nonmem_data) +
   scale_y_log10() + 
   geom_line(aes(TIME,pred),col="firebrick", lwd=1)
 
-l
+####   2 compartment model 
+
+
+
+mod2 <- modlib("pk2")
+see(mod2)
+param (mod2)
+
+
+
+theta2 <- log(c(CL = 8.516146, V2 = 50, Q = 10, V3 = 44, KA = 1.01))
+
+obj(theta2, theta2, nonmem_data)   
+
+obj2 <- function(p, theta2, nonmem_data, dv = "DV", pred = FALSE) {
+  
+  # Assign parameter names and convert log parameters back to linear scale
+  names(p) <- names(theta2)
+  p <- lapply(p, exp)
+  
+  # Update the model parameters using mrgsolve
+  mod <- param(mod2, p)
+  
+  # Simulate the model
+  out <- mrgsim_q(mod, nonmem_data, output = "df")
+  
+  # If pred = TRUE, return the simulated output
+  if (pred) return(out)
+  
+  # Calculate residual sum of squares (RSS) between observed and predicted
+  sqr <- (out[["CP"]] - nonmem_data[[dv]])^2
+  sum(sqr, na.rm = TRUE)  # Return RSS
+}
+
+fit2 <- optim(par = theta2, fn=obj2, theta = theta2, nonmem_data=nonmem_data)
+
+print(exp(fit2$par))
+
+pred2 <- obj2(fit2$par, theta2, nonmem_data, pred = TRUE)
+
+nonmem_data$pred2 <- pred2$CP
+
+ggplot(data = nonmem_data) + 
+  geom_point(aes(TIME, DV), alpha = 0.6) + 
+  scale_y_log10() + 
+  geom_line(aes(TIME, pred2), col = "firebrick", lwd = 1) +
+  theme_minimal() +
+  labs(title = "Model Fit: Two-Compartment PK", 
+       x = "Time (hr)", y = "Concentration (log scale)")
+
+#weighted least squares
+
+# Weighted least squares objective function
+obj3 <- function(p, theta, nonmem_data, wt, pred = FALSE) {
+  names(p) <- names(theta)
+  p <- lapply(p, exp)  # Convert parameters back from log scale
+  out <- mod %>% param(p) %>% mrgsim_q(nonmem_data, output = "df")  # Simulate with new parameters
+  if(pred) return(out)  # Return simulated output if pred is TRUE
+  return(sum(((out$CP - nonmem_data[["DV"]]) * wt)^2, na.rm = TRUE))  # Return weighted RSS
+}
+
+# Assume nonmem_data exists and has a DV column
+dv <- nonmem_data[["DV"]]  # Extract DV for further calculations
+
+# Fitting the model with weights using newuoa
+fit_wt <- minqa::newuoa(par = theta, fn = obj3, theta = theta, nonmem_data = nonmem_data, wt = 1/dv)
+
+predw <- obj3(fit_wt$par, theta, nonmem_data, wt = 1/dv, pred = TRUE)  # Call obj3 for predictions
+
+nonmem_data$predw <- predw$CP  # Add weighted predictions to nonmem_data
+
+
+head(nonmem_data)
+
+predx <- distinct(nonmem_data, TIME, .keep_all = TRUE)
+
+
+
+ggplot(data = nonmem_data) + 
+  geom_point(aes(TIME, DV), alpha = 0.6) + 
+  scale_y_log10() + 
+  geom_line(aes(TIME, pred, color = "1 Compartmental model"), lwd = 1, alpha = 0.6) +
+  geom_line(aes(TIME, pred2, color = "2 Compartmental model"), lwd = 1) + 
+  geom_line(aes(TIME, predw, color = "Weighted Least Squares model"), lwd = 1) +
+  theme_minimal() +
+  labs(title = "Comparison of 1, 2 Compartmental and Weighted Least Squares", 
+       x = "Time (minutes)", 
+       y = "Concentration (log scale)", 
+       color = "Models") +  # Change the legend title for clarification
+  scale_color_manual(values = c("1 Compartmental model" = "black", 
+                                "2 Compartmental model" = "darkgreen", 
+                                "Weighted Least Squares model" = "firebrick"))+
+  theme(legend.position = "bottom")
+  
+
+
+
+
