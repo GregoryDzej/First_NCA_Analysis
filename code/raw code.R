@@ -7,6 +7,9 @@ library(PKNCA)
 #install.packages('pander')
 library(pander)
 library(tidyr)
+library(nlme)
+library(mrgsolve)
+
 
 #load the sample_data dataset
 
@@ -62,8 +65,6 @@ ggplot(data, aes(Time, Conc)) +
                      values = c("Observations" = "grey", "Median" = "black")) +
   labs(y = "Concentration", x = "Time")  # Add axis labels as needed
  
-
-# Display the plot
 
 
 
@@ -153,7 +154,7 @@ ggplot(data,aes(Time,Conc))+
   facet_grid(~Dose )+ # try (~ Race ) here 
   theme_bw()
 ggsave("images/8_median_and_0.25_and_0.75_quantile_of_log_concentration_vs_time_by_dose_by_gender.png", width=8, height=6, dpi=300)
-)
+
 
 ######################################################
 #### noncomparmental analysis considering only Subject 
@@ -399,7 +400,7 @@ summary_stats_Age <- data_wide_Age %>%
     median_Vd = median(Vd, na.rm = TRUE),                     # Median Volume of Distribution
     n = n_distinct(Subject)                                   # Number of Distinct Subjects
   )
-
+median(summary_stats$median_Vd)
 print(summary_stats_Age)
 # the computation of 
 
@@ -477,3 +478,115 @@ data_wide <- data_wide %>%
 # MRT 
 data_wide <-data_wide %>%  
   mutate( MRT = AUMC_all/ aucinf.obs )
+
+
+
+########
+head (data)
+
+pivot_data_summary <- data %>%
+  mutate(ID = ID,
+         Time = Time, 
+         Conc = Conc)%>%
+  pivot_wider(names_from = Time, values_from = Conc)
+
+
+
+head (pivot_data_summary)
+
+#####NONEM data set transformation 
+
+# Create NONMEM-compatible dataset
+nonmem_data <- data %>%
+  dplyr::mutate(
+    # EVID = 1 for doses, 0 for observations
+    EVID = ifelse(Amt > 0, 1, 0),
+    
+    # DV (dependent variable) = concentration for observations, missing (.) for doses
+    DV = ifelse(EVID == 0, Conc, NA),
+    
+    # MDV = 1 for doses (missing DV), 0 for observations
+    MDV = ifelse(EVID == 1, 1, 0),
+    
+    # CMT = compartment; 1 for dosing, 2 for measurements
+    CMT = ifelse(EVID == 1, 1, 2),
+    
+    TIME = Time,
+    AMT = Amt,
+    AGE = Age,
+    WT = Weight,
+    SEX = Gender,
+    RACE = Race
+    
+  ) %>%
+  # Select and order columns for NONMEM format
+  dplyr::select(ID, TIME ,DV ,AMT ,CMT , EVID, MDV, AGE, SEX,RACE  )
+
+# View the NONMEM-formatted dataset
+print(nonmem_data)
+
+str(nonmem_data)
+
+subset_data <- nonmem_data[nonmem_data$EVID == 0, ]
+
+# Check for missing values in critical columns
+sum(is.na(subset_data$DV))  # Observed concentrations
+sum(is.na(subset_data$TIME))
+sum(is.na(subset_data$AMT))
+
+
+#load PK model 
+
+mod <- modlib("pk1")
+
+param(mod)
+
+
+theta <- log(c(CL = 1, V = 100))
+
+names(theta)
+
+obj <- function(p, theta, nonmem_data, dv ="DV", pred = FALSE) {
+  
+  names(p) <- names(theta)
+  
+  p <- lapply(p,exp)
+  
+  mod <- param(mod, p)
+  
+  out <- mrgsim_q(mod, nonmem_data, output="df")
+  
+  if(pred) return(out)
+  
+  sqr <- (out[["CP"]] - nonmem_data[[dv]])^2
+  
+  sum(sqr, na.rm=TRUE)
+}
+
+#Fit with one-compartment mode
+
+obj(theta,theta,nonmem_data)
+
+#RRS = 5635409
+
+#Nelder-Mead optimization
+
+fit <- optim(par = theta, fn=obj, theta = theta, nonmem_data=nonmem_data)
+
+optimized_params <- exp(fit$par) #exponated params 
+names(optimized_params) <- names(theta)
+print(optimized_params)
+
+#generate predictions 
+pred <- obj(fit$par, theta, nonmem_data, pred = TRUE)
+
+nonmem_data$pred <- pred$CP
+
+head(nonmem_data)
+
+ggplot(data = nonmem_data) + 
+  geom_point(aes(TIME,DV)) + 
+  scale_y_log10() + 
+  geom_line(aes(TIME,pred),col="firebrick", lwd=1)
+
+
