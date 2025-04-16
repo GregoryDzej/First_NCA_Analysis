@@ -18,6 +18,8 @@ The primary dataset used in this analysis is a sample pharmacokinetic dataset (s
 ```sd_oral_richpk:``` from ’PKPDmisc’ R package with an additional AGECAT variable. 
 This dataset contains time-concentration profiles and subject-specific metadata that are critical for the pharmacokinetic analysis performed in this repository.
 
+Source: https://rdrr.io/github/dpastoor/PKPDdatasets/man/sd_oral_richpk.html
+
 | Column Name | Description |
 | :-- | :-- |
 | ID | Subject ID |
@@ -43,10 +45,8 @@ The analysis scripts require the following R packages:
 ## To install the required packages:
 
 ```{r}
-install.packages(c("dplyr", "ggplot2", "tidyr", "PKNCA", "pander"))
+install.packages(c("dplyr", "ggplot2", "tidyr", "PKNCA", "pander", "nlme" ,"mrgsolve"))
 ```
-Full analysis in PDF: https://github.com/GregoryDzej/First_NCA_Analysis/blob/main/code/code_and_plots.pdf
-
 
 ## Contact Information:
 This repository is maintained by Grzegorz Sterkowski. Please feel free to reach out with any questions, feedback, or issues.

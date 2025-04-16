@@ -520,7 +520,7 @@ nonmem_data <- data %>%
     
   ) %>%
   # Select and order columns for NONMEM format
-  dplyr::select(ID, TIME ,DV ,AMT ,CMT , EVID, MDV, AGE, SEX,RACE  )
+  dplyr::select(ID, TIME ,DV ,AMT ,CMT , EVID, MDV, AGE, SEX,RACE, WT  )
 
 # View the NONMEM-formatted dataset
 print(nonmem_data)
@@ -546,6 +546,7 @@ obj <- function(p, theta, nonmem_data, dv ="DV", pred = FALSE) {
   
   p <- lapply(p,exp)
   
+
   mod <- param(mod, p)
   
   out <- mrgsim_q(mod, nonmem_data, output="df")
@@ -593,7 +594,7 @@ param (mod2)
 
 
 
-theta2 <- log(c(CL = 8.516146, V2 = 50, Q = 10, V3 = 44, KA = 1.01))
+theta2 <- log(c(CL = 7.517, V2 = 62 , Q = 15, V3 = 31, KA = 0.87))
 
 obj(theta2, theta2, nonmem_data)   
 
@@ -602,7 +603,7 @@ obj2 <- function(p, theta2, nonmem_data, dv = "DV", pred = FALSE) {
   # Assign parameter names and convert log parameters back to linear scale
   names(p) <- names(theta2)
   p <- lapply(p, exp)
-  
+ 
   # Update the model parameters using mrgsolve
   mod <- param(mod2, p)
   
@@ -679,5 +680,15 @@ ggplot(data = nonmem_data) +
   
 
 
+
+RSS_1C <- sum((nonmem_data$DV - nonmem_data$pred)^2, na.rm = TRUE)
+RSS_2C <- sum((nonmem_data$DV - nonmem_data$pred2)^2, na.rm = TRUE)
+RSS_3C <- sum((nonmem_data$DV - nonmem_data$predw)^2, na.rm = TRUE)
+AIC_1C <- length(theta) + length(nonmem_data$DV) * log(RSS_1C)
+AIC_2C <- length(theta2) + length(nonmem_data$DV) * log(RSS_2C)
+AIC_3C <- length(theta) + length(nonmem_data$DV) * log(RSS_3C)
+print(AIC_1C)
+print(AIC_2C)
+print(AIC_3C)
 
 
