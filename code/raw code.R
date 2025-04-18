@@ -9,7 +9,7 @@ library(pander)
 library(tidyr)
 library(nlme)
 library(mrgsolve)
-
+library(lattice)
 
 #load the sample_data dataset
 
@@ -32,8 +32,34 @@ summary(data)
 #number of subject in the study
 n_distinct(data$ID)
 
+######visualisation of the concentration of 1 to 20  subject 
 
-######visualisation of the data
+subset_data20 <- subset(data, ID %in% unique(data$ID)[1:20])
+
+print(
+  xyplot(Conc ~ Time | ID ,
+         data = subset_data20,
+         main = 'Subjects 1 - 20 Concentration vs. Time',
+         xlab = 'Time',
+         ylab = "'Concentration (ng / mL)"
+  )
+)
+
+######visualisation of the concentration of 21 to 40  subject 
+
+subset_data40 <- subset(data, ID %in% unique(data$ID)[21:40])
+
+print(
+  xyplot(Conc ~ Time | ID ,
+         data = subset_data40,
+         main = 'Subjects 21 - 40 Concentration vs. Time',
+         xlab = 'Time',
+         ylab = "'Concentration (ng / mL)"
+  )
+)
+
+
+######visualisation of the subjects intersecting 
 
 ggplot(data, aes(x=Time, y=Conc)) +
   geom_point(size=3)
